@@ -3,14 +3,14 @@ Template.notesView.onCreated(function () {
     self.keyOk = new ReactiveVar(false);
     var id = FlowRouter.getParam('id');
     this.autorun(function () {
-        if (Meteor.userId()) {
-            Meteor.subscribe('notesPrivateView', id);
-        } else {
-            Meteor.subscribe('notesPublicView', id);
-            if (self.keyOk.get()) {
-                Meteor.subscribe('notesPublicFullView', id);
-            }
+        //if (Meteor.userId()) {
+        Meteor.subscribe('notesPrivateView', id);
+        //} else {
+        Meteor.subscribe('notesPublicView', id);
+        if (self.keyOk.get()) {
+            Meteor.subscribe('notesPublicFullView', id);
         }
+        //}
     });
 });
 
@@ -21,10 +21,13 @@ Template.notesView.helpers({
         return Notes.findOne(noteId);
     },
     isKey: function () {
-        if(!Meteor.userId()) {
-            var noteId = FlowRouter.getParam('id');
-            var isKey = Notes.findOne(noteId).secret;
-            if (isKey) {
+        //if(!Meteor.userId()) {
+        var noteId = FlowRouter.getParam('id');
+        var note = Notes.findOne(noteId);
+        if (Meteor.userId() == note.authorId) {
+            return false;
+        } else {
+            if (note.secret) {
                 if (Template.instance().keyOk.get()) { // zamieszane, ale tyle sie meczylem z ReactiveVar, ze nie mam sily poprawic, wazne ze dziala
                     return false
                 } else
@@ -33,8 +36,15 @@ Template.notesView.helpers({
                 Template.instance().keyOk.set(true);
                 return false;
             }
-        } else
-            return false;
+        }
+        //} else
+        //    return false;
+    },
+    isAuthor: function() {
+        var noteId = FlowRouter.getParam('id');
+        var note = Notes.findOne(noteId);
+        if(Meteor.userId() == note.authorId)
+            return true;
     }
 });
 
@@ -56,7 +66,7 @@ Template.notesView.events({
                 console.log(err);
             } else {
                 t.keyOk.set(result);
-                if(result)
+                if (result)
                     toastr.success("Welcome!");
                 else
                     toastr.error("Access denied!");
