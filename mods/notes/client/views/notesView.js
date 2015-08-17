@@ -24,7 +24,7 @@ Template.notesView.helpers({
         //if(!Meteor.userId()) {
         var noteId = FlowRouter.getParam('id');
         var note = Notes.findOne(noteId);
-        if (Meteor.userId() == note.authorId) {
+        if (Meteor.userId() && Meteor.userId() == note.authorId) {
             return false;
         } else {
             if (note.secret) {
